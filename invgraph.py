@@ -1,4 +1,4 @@
-class pGraph():
+class Graph:
     """
         graph data structure to store the network
     :return:
@@ -16,14 +16,18 @@ class pGraph():
         :param e: end node
         :param w: weight
         """
-        pGraph.add_node(self, s)
-        pGraph.add_node(self, e)
-        self.network[s][e] = w
+        Graph.add_node(self, s)
+        Graph.add_node(self, e)
+        # add inverse edge
+        self.network[e][s] = w
 
     def get_out_degree(self, source):
         return len(self.network[source])
 
     def get_neighbors(self, source):
-        return self.network[source].items()
+        if source in self.network:
+            return self.network[source].items()
+        else:
+            return []
 
 

@@ -1,4 +1,4 @@
-from graph import Graph
+from graph import pGraph
 import random
 import multiprocessing as mp
 import time
@@ -60,8 +60,8 @@ def read_file(network, seed):
     global node_num, edge_num, graph, seeds
     data_lines = open(network, 'r').readlines()
     seed_lines = open(seed, "r").readlines()
-    node_num = data_lines[0].split()[0]
-    edge_num = data_lines[0].split()[1]
+    node_num = int(data_lines[0].split()[0])
+    edge_num = int(data_lines[0].split()[1])
 
     for data_line in data_lines[1: ]:
         start, end, weight = data_line.split()
@@ -120,6 +120,21 @@ def LT():
     return count
 
 
+def calculate_influence(Sk, model_type, _graph):
+    global seeds, worker, model, graph
+    graph = _graph
+    model = model_type
+    seeds = Sk
+    worker = []
+    worker_num = 8
+    create_worker(worker_num, int(10000 / worker_num))
+    result = []
+    for w in worker:
+        # print(w.outQ.get())
+        result.append(w.outQ.get())
+    # print('%.2f' % (sum(result) / 10000))
+    finish_worker()
+    return sum(result) / 10000
 
 if __name__ == "__main__":
     """
@@ -131,9 +146,7 @@ if __name__ == "__main__":
     """
     node_num = 0
     edge_num = 0
-    graph = 0
-    seeds = 0
-    graph = Graph()
+    graph = pGraph()
     seeds = []
     model = 'IC'
     """
@@ -168,16 +181,3 @@ if __name__ == "__main__":
     finish_worker()
     end = time.time()
     # print(end - start)
-    """
-    # start = time.time()
-    sum = 0
-    if model == 'IC':
-        for i in range(10000):
-            sum += IC()
-    elif model == 'LT':
-        for i in range(10000):
-            sum += LT()
-
-    
-    # end = time.time()
-    """

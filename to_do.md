@@ -1,8 +1,8 @@
 ## TO-DO
 
-- [ ] improve the efficiency of generating rr set
-- [ ] Decrease espoid
-- [ ] Add multi processing
+- [x] improve the efficiency of generating rr set
+- [x] Decrease espoid
+- [x] Add multi processing
 
 
 

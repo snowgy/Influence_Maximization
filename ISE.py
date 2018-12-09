@@ -92,7 +92,6 @@ def IC():
     return count
 
 
-
 def LT():
     """
     implement linear threshold model

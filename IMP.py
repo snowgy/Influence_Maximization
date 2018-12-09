@@ -55,15 +55,12 @@ def sampling(epsoid, l):
     n = node_num
     k = seed_size
     epsoid_p = epsoid * math.sqrt(2)
-    for i in range(0, int(math.log2(n))):
+    for i in range(1, int(math.log2(n-1))+1):
+        s = time.time()
         x = n/(math.pow(2, i))
         lambda_p = ((2+2*epsoid_p/3)*(logcnk(n, k) + l*math.log(n) + math.log(math.log2(n)))*n)/pow(epsoid_p, 2)
         theta = lambda_p/x
-        print(theta)
-        # while len(R) <= theta:
-        #     v = random.randint(1, n)
-        #     rr = generate_rr(v)
-        #     R.append(rr)
+        # print(theta)
         worker_num = 8
         create_worker(worker_num, (theta-len(R))/8)
         for w in worker:
@@ -71,7 +68,12 @@ def sampling(epsoid, l):
             R += R_list
         finish_worker()
         worker = []
+        end = time.time()
+        # print('time to find rr', end - s)
+        start = time.time()
         Si = node_selection(R, k)
+        end = time.time()
+        # print('node selection time', end - start)
         if n*F(R, Si) >= (1+epsoid_p)*x:
             LB = n*F(R, Si)/(1+epsoid_p)
             break
@@ -79,10 +81,15 @@ def sampling(epsoid, l):
     beta = math.sqrt((1-1/math.e)*(logcnk(n, k)+l*math.log(n)+math.log(2)))
     lambda_aster = 2*n*pow(((1-1/math.e)*alpha + beta), 2)*pow(epsoid, -2)
     theta = lambda_aster / LB
-    while len(R) <= theta:
+    start = time.time()
+    length_r = len(R)
+    while length_r <= theta:
         v = random.randint(1, n)
         rr = generate_rr(v)
         R.append(rr)
+        length_r += 1
+    end = time.time()
+    # print(end - start)
     return R
 
 
@@ -96,32 +103,28 @@ def generate_rr(v):
 
 def node_selection(R, k):
     Sk = set()
-    rr_flag = {}
-    max_point = -1
-    for i in range(0, k):
-        rr_degree = dict()
-        for rr in R:
-            t_rr = tuple(rr)
-            if t_rr not in rr_flag:
-                rr_flag[t_rr] = 1
-            if max_point in rr:
-                rr_flag[t_rr] = 0
-            if not rr_flag[t_rr]:
-                continue
+    rr_degree = [0 for ii in range(node_num+1)]
+    node_rr_set = dict()
+    for j in range(0, len(R)):
+        rr = R[j]
+        for rr_node in rr:
+            rr_degree[rr_node] += 1
+            if rr_node not in node_rr_set:
+                node_rr_set[rr_node] = list()
+
+            node_rr_set[rr_node].append(j)
+
+    for i in range(k):
+        max_point = rr_degree.index(max(rr_degree))
+        Sk.add(max_point)
+        index_set = []
+        for node_rr in node_rr_set[max_point]:
+            index_set.append(node_rr)
+        for jj in index_set:
+            rr = R[jj]
             for rr_node in rr:
-                if rr_node not in rr_degree:
-                    rr_degree[rr_node] = 1
-                else:
-                    rr_degree[rr_node] += 1
-        max_point = -1
-        max_degree = 0
-        for j in range(1, node_num + 1):
-            if j in rr_degree and rr_degree[j] > max_degree:
-                max_point = j
-                max_degree = rr_degree[j]
-        if max_point != -1:
-            Sk.add(max_point)
-            rr_degree[max_point] = 0
+                rr_degree[rr_node] -= 1
+                node_rr_set[rr_node].remove(jj)
     return Sk
 
 
@@ -132,25 +135,6 @@ def F(R, Si):
             if s in rr:
                 matched_count += 1
     return matched_count/len(R)
-
-'''
-def generate_rr_ic(node):
-    # calculate reverse reachable set using IC model
-    activity_set = list()
-    active_nodes = list()
-    activity_set.append(node)
-    active_nodes.append(node)
-    while activity_set:
-        new_activity_set = list()
-        for seed in activity_set:
-            for _node, weight in graph.get_neighbors(seed):
-                if _node not in active_nodes:
-                    if random.random() < weight:
-                        active_nodes.append(_node)
-                        new_activity_set.append(_node)
-        activity_set = new_activity_set
-    return active_nodes
-'''
 
 
 def generate_rr_ic(node):
@@ -265,22 +249,20 @@ if __name__ == "__main__":
 
     read_file(network_path)
     worker = []
-    if node_num < 63:
-        epsoid = 0.1
-    else:
-        epsoid = 0.1
-    print(epsoid)
+
+    epsoid = 0.1
     l = 1
     seeds = imm(epsoid, l)
     # print(seeds)
 
-    # for seed in seeds:
-    #     print(seed)
+    for seed in seeds:
+        print(seed)
 
-
-    # res = ISE.calculate_influence(seeds, model, pGraph)
-
-    # print(res)
     end = time.time()
+    # print(end - start)
+    #
+    # res = ISE.calculate_influence(seeds, model, pGraph)
+    #
+    # print(res)
 
-    print(end-start)
+

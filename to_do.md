@@ -2,6 +2,7 @@
 
 - [ ] improve the efficiency of generating rr set
 - [ ] Decrease espoid
+- [ ] Add multi processing
 
 
 

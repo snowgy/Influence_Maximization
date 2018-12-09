@@ -9,8 +9,47 @@ import math
 import ISE
 
 
+class Worker(mp.Process):
+    def __init__(self, outQ, theta):
+        super(Worker, self).__init__(target=self.start)
+        self.outQ = outQ
+        self.R = []
+        self.theta = theta
+        self.count = 0
+
+    def run(self):
+        while self.count < self.theta:
+            v = random.randint(1, node_num)
+            rr = generate_rr(v)
+            self.R.append(rr)
+            self.count += 1
+        self.outQ.put(self.R)
+
+
+def create_worker(num, task_num):
+    """
+        create processes
+        :param num: process number
+        :param task_num: the number of tasks assigned to each worker
+    """
+    global worker
+    for i in range(num):
+        # print(i)
+        worker.append(Worker(mp.Queue(), task_num))
+        worker[i].start()
+
+
+def finish_worker():
+    """
+    关闭所有子进程
+    :return:
+    """
+    for w in worker:
+        w.terminate()
+
+
 def sampling(epsoid, l):
-    global graph, seed_size
+    global graph, seed_size, worker
     R = []
     LB = 1
     n = node_num
@@ -20,11 +59,18 @@ def sampling(epsoid, l):
         x = n/(math.pow(2, i))
         lambda_p = ((2+2*epsoid_p/3)*(logcnk(n, k) + l*math.log(n) + math.log(math.log2(n)))*n)/pow(epsoid_p, 2)
         theta = lambda_p/x
-        # print(theta)
-        while len(R) <= theta:
-            v = random.randint(1, n)
-            rr = generate_rr(v)
-            R.append(rr)
+        print(theta)
+        # while len(R) <= theta:
+        #     v = random.randint(1, n)
+        #     rr = generate_rr(v)
+        #     R.append(rr)
+        worker_num = 8
+        create_worker(worker_num, (theta-len(R))/8)
+        for w in worker:
+            R_list = w.outQ.get()
+            R += R_list
+        finish_worker()
+        worker = []
         Si = node_selection(R, k)
         if n*F(R, Si) >= (1+epsoid_p)*x:
             LB = n*F(R, Si)/(1+epsoid_p)
@@ -87,7 +133,7 @@ def F(R, Si):
                 matched_count += 1
     return matched_count/len(R)
 
-
+'''
 def generate_rr_ic(node):
     # calculate reverse reachable set using IC model
     activity_set = list()
@@ -103,6 +149,29 @@ def generate_rr_ic(node):
                         active_nodes.append(_node)
                         new_activity_set.append(_node)
         activity_set = new_activity_set
+    return active_nodes
+'''
+
+
+def generate_rr_ic(node):
+    # calculate reverse reachable set using IC model
+    activity_set = set()
+    activity_set.add(node)
+    active_nodes = set()
+    active_nodes.add(node)
+    converged = False
+    while not converged:
+        new_activity_set = set()
+        for seed in activity_set:
+            for _node in set(graph.get_neighbors_keys(seed)) - active_nodes:
+                weight = graph.network[seed][_node]
+                if random.random() < weight:
+                    active_nodes.add(_node)
+                    new_activity_set.add(_node)
+        activity_set = new_activity_set
+        if not activity_set:
+            converged = True
+        active_nodes |= activity_set
     return active_nodes
 
 
@@ -195,7 +264,12 @@ if __name__ == "__main__":
             termination = int(val)
 
     read_file(network_path)
-    epsoid = 0.3
+    worker = []
+    if node_num < 63:
+        epsoid = 0.1
+    else:
+        epsoid = 0.1
+    print(epsoid)
     l = 1
     seeds = imm(epsoid, l)
     # print(seeds)
@@ -203,8 +277,10 @@ if __name__ == "__main__":
     # for seed in seeds:
     #     print(seed)
 
-    res = ISE.calculate_influence(seeds, model, pGraph)
 
-    print(res)
+    # res = ISE.calculate_influence(seeds, model, pGraph)
+
+    # print(res)
     end = time.time()
+
     print(end-start)

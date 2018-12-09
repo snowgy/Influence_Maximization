@@ -180,4 +180,4 @@ if __name__ == "__main__":
     print('%.2f' % (sum(result) / 10000))
     finish_worker()
     end = time.time()
-    # print(end - start)
+    print(end - start)

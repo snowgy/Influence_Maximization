@@ -30,4 +30,10 @@ class Graph:
         else:
             return []
 
+    def get_neighbors_keys(self, source):
+        if source in self.network:
+            return self.network[source].keys()
+        else:
+            return []
+
 

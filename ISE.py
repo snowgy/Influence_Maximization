@@ -170,7 +170,7 @@ if __name__ == "__main__":
     read_file(network_path, seed_path)
 
     worker = []
-    worker_num = 8
+    worker_num = 2
     create_worker(worker_num, int(10000/worker_num))
     result = []
     for w in worker:

@@ -6,6 +6,7 @@ import time
 import getopt
 import sys
 import math
+import heapq
 import ISE
 
 
@@ -61,7 +62,7 @@ def sampling(epsoid, l):
     n = node_num
     k = seed_size
     epsoid_p = epsoid * math.sqrt(2)
-    worker_num = 2
+    worker_num = 8
     create_worker(worker_num)
     for i in range(1, int(math.log2(n-1))+1):
         s = time.time()
@@ -77,12 +78,12 @@ def sampling(epsoid, l):
         # finish_worker()
         # worker = []
         end = time.time()
-        # print('time to find rr', end - s)
+        print('time to find rr', end - s)
         start = time.time()
         Si, f = node_selection(R, k)
-        # print(f)
+        print(f)
         end = time.time()
-        # print('node selection time', time.time() - start)
+        print('node selection time', time.time() - start)
         # print(F(R, Si))
         # f = F(R,Si)
         if n*f >= (1+epsoid_p)*x:
@@ -126,11 +127,12 @@ def generate_rr(v):
         return generate_rr_lt(v)
 
 
+'''
 def node_selection(R, k):
     Sk = set()
     rr_degree = [0 for ii in range(node_num+1)]
     node_rr_set = dict()
-    node_rr_set_copy = dict()
+    # node_rr_set_copy = dict()
     matched_count = 0
     for j in range(0, len(R)):
         rr = R[j]
@@ -139,14 +141,13 @@ def node_selection(R, k):
             rr_degree[rr_node] += 1
             if rr_node not in node_rr_set:
                 node_rr_set[rr_node] = list()
-                node_rr_set_copy[rr_node] = list()
+                # node_rr_set_copy[rr_node] = list()
             node_rr_set[rr_node].append(j)
-            node_rr_set_copy[rr_node].append(j)
-
+            # node_rr_set_copy[rr_node].append(j)
     for i in range(k):
         max_point = rr_degree.index(max(rr_degree))
         Sk.add(max_point)
-        matched_count += len(node_rr_set_copy[max_point])
+        matched_count += len(node_rr_set[max_point])
         index_set = []
         for node_rr in node_rr_set[max_point]:
             index_set.append(node_rr)
@@ -156,38 +157,40 @@ def node_selection(R, k):
                 rr_degree[rr_node] -= 1
                 node_rr_set[rr_node].remove(jj)
     return Sk, matched_count/len(R)
+'''
 
 
-def F(R, Si):
+def node_selection(R, k):
+    # use CELF to accelerate
+    Sk = set()
+    node_rr_set = dict()
+    rr_degree = [0 for ii in range(node_num + 1)]
     matched_count = 0
-    for rr in R:
-        for s in Si:
-            if s in rr:
-                matched_count += 1
-    return matched_count/len(R)
-
-'''
-def generate_rr_ic(node):
-    # calculate reverse reachable set using IC model
-    activity_set = set()
-    activity_set.add(node)
-    active_nodes = set()
-    active_nodes.add(node)
-    converged = False
-    while not converged:
-        new_activity_set = set()
-        for seed in activity_set:
-            for _node in set(graph.get_neighbors_keys(seed)) - active_nodes:
-                weight = graph.network[seed][_node]
-                if random.random() < weight:
-                    active_nodes.add(_node)
-                    new_activity_set.add(_node)
-        activity_set = new_activity_set
-        if not activity_set:
-            converged = True
-        active_nodes |= activity_set
-    return active_nodes
-'''
+    for i, rr in enumerate(R):
+        for v in rr:
+            if v in node_rr_set:
+                node_rr_set[v].add(i)
+                rr_degree[v] += 1
+            else:
+                node_rr_set[v] = {i}
+    max_heap = list()
+    for key, value in node_rr_set.items():
+        max_heap.append([-len(value), key, 0])
+    heapq.heapify(max_heap)
+    i = 0
+    covered_set = set()
+    while i < k:
+        val = heapq.heappop(max_heap)
+        if val[2] != i:
+            node_rr_set[val[1]] -= covered_set
+            val[0] = -len(node_rr_set[val[1]])
+            val[2] = i
+            heapq.heappush(max_heap, val)
+        else:
+            Sk.add(val[1])
+            i += 1
+            covered_set |= node_rr_set[val[1]]
+    return Sk, len(covered_set) / len(R)
 
 
 def generate_rr_ic(node):
@@ -209,21 +212,24 @@ def generate_rr_ic(node):
 
 def generate_rr_lt(node):
     # calculate reverse reachable set using LT model
-    activity_set = list()
+    # activity_set = list()
     activity_nodes = list()
-    activity_set.append(node)
+    # activity_set.append(node)
     activity_nodes.append(node)
-    while activity_set:
-        new_activity_set = list()
-        for seed in activity_set:
-            neighbors = graph.get_neighbors(seed)
-            if len(neighbors) == 0:
-                continue
-            candidate = random.sample(neighbors, 1)[0][0]
-            # print(candidate)
-            if candidate not in activity_nodes:
-                activity_nodes.append(candidate)
-                new_activity_set.append(candidate)
+    activity_set = node
+
+    while activity_set != -1:
+        new_activity_set = -1
+
+        neighbors = graph.get_neighbors(activity_set)
+        if len(neighbors) == 0:
+            break
+        candidate = random.sample(neighbors, 1)[0][0]
+        # print(candidate)
+        if candidate not in activity_nodes:
+            activity_nodes.append(candidate)
+            # new_activity_set.append(candidate)
+            new_activity_set = candidate
         activity_set = new_activity_set
     return activity_nodes
 
@@ -277,6 +283,7 @@ if __name__ == "__main__":
     model = 'IC'
     """
     command line parameters
+    usage: python3 IMP.py -i <graph file path> -k <the number of seeds> -m <IC or LT> -t <termination time> 
     """
     start = time.time()
     network_path = "test_data/NetHEPT.txt"
@@ -306,7 +313,7 @@ if __name__ == "__main__":
         print(seed)
 
     end = time.time()
-    # print(end - start)
+    print(end - start)
     #
     # res = ISE.calculate_influence(seeds, model, pGraph)
     #

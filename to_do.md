@@ -8,7 +8,7 @@
 
 12.10
 
-- [ ] use heap instead of array
+- [ ] ~~use heap instead of array~~
 
 - [x] avoid repeating creating processes
 

@@ -14,7 +14,7 @@ $ python3 IMP.py -i <graph file path> -k <the number of seeds> -m <IC or LT> -t 
 
 NetHept Dataset：
 
-$e$ = 0.1 $ l$= 1 seed_num = 50 
+e = 0.1 l = 1 seed_num = 50 
 
 Output (estimated diffusion)：1294-1298
 

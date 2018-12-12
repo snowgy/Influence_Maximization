@@ -62,7 +62,7 @@ def sampling(epsoid, l):
     n = node_num
     k = seed_size
     epsoid_p = epsoid * math.sqrt(2)
-    worker_num = 8
+    worker_num = 2
     create_worker(worker_num)
     for i in range(1, int(math.log2(n-1))+1):
         s = time.time()
@@ -127,7 +127,7 @@ def generate_rr(v):
         return generate_rr_lt(v)
 
 
-'''
+
 def node_selection(R, k):
     Sk = set()
     rr_degree = [0 for ii in range(node_num+1)]
@@ -157,9 +157,9 @@ def node_selection(R, k):
                 rr_degree[rr_node] -= 1
                 node_rr_set[rr_node].remove(jj)
     return Sk, matched_count/len(R)
+
+
 '''
-
-
 def node_selection(R, k):
     # use CELF to accelerate
     Sk = set()
@@ -191,7 +191,7 @@ def node_selection(R, k):
             i += 1
             covered_set |= node_rr_set[val[1]]
     return Sk, len(covered_set) / len(R)
-
+'''
 
 def generate_rr_ic(node):
     activity_set = list()
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
     read_file(network_path)
     worker = []
-    epsoid = 0.1
+    epsoid = 0.5
     l = 1
     seeds = imm(epsoid, l)
     # print(seeds)

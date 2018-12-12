@@ -2,7 +2,7 @@
 
 ### Algorithm
 
-复现了“Influence Maximization in Near-Linear Time: A Martingale Approach”中的算法。
+Implement algorithm described in “Influence Maximization in Near-Linear Time: A Martingale Approach” 
 
 ### Usage
 

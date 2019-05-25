@@ -12,13 +12,21 @@ $ python3 IMP.py -i <graph file path> -k <the number of seeds> -m <IC or LT> -t 
 
 ### Result
 
-NetHept Dataset：
+![](https://img.shields.io/badge/Dataset-NetHept-orange.svg)
 
-e = 0.1 l = 1 seed_num = 50 
+#### Input
 
-Output (estimated diffusion)：1294-1298
+`e` : 0.1 
 
-Time(8 processes): 3.5s
+`l` : 1 
+
+`seed_num` : 50 
+
+#### Output 
+
+`Estimated Diffusion` : 1294-1298
+
+`Time (8 processes)` : 3.5s
 
 
 

@@ -1,5 +1,7 @@
 ## Influence Maximization Problem
 
+[![author](https://img.shields.io/badge/Author-Yue%20Gong-blue.svg)](https://github.com/snowgy) ![python](https://img.shields.io/badge/python-3.5-brightgreen.svg)
+
 ### Algorithm
 
 Implement the algorithm described in “Influence Maximization in Near-Linear Time: A Martingale Approach” 
@@ -12,7 +14,7 @@ $ python3 IMP.py -i <graph file path> -k <the number of seeds> -m <IC or LT> -t 
 
 ### Result
 
-![](https://img.shields.io/badge/Dataset-NetHept-orange.svg)
+[![](https://img.shields.io/badge/Dataset-NetHept-orange.svg)](https://github.com/snowgy/Influence_Maximization/blob/master/test_data/NetHEPT.txt)
 
 #### Input
 
